@@ -1,8 +1,56 @@
 import Paginations from '@/Components/Paginations';
+import MagnifyingGlass from '@/Components/Icons/MagnifyingGlass';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-export default function Index({ auth, students }) {
+export default function Index({ auth, students, classes }) {
+    const page = usePage();
+    const [searchTerm, setSearchTerm] = useState(usePage().props.search || "");
+    const [pageNumber, setPageNumber] = useState("");
+    const [classId, setClassId] = useState( usePage().props.class_id ||  "");
+    const isInitialRender = useRef(true);
+
+    const updatedPageNumber = (link) => {
+        setPageNumber(link.url.split("=")[1]);
+    };
+
+    let studentsUrl = useMemo(() => {
+        const url = new URL(route("students.index"));
+        if (classId) {
+            url.searchParams.append('class_id', classId);
+        }
+
+        if (pageNumber) {
+            url.searchParams.append('page', pageNumber);
+        }
+
+        if (searchTerm) {
+            url.searchParams.append('search', searchTerm);
+        }
+        return url;
+    }, [searchTerm, pageNumber,classId]);
+
+    useEffect(() => {
+        if (isInitialRender.current) {
+            isInitialRender.current = false;
+            return;
+        }
+        router.visit(studentsUrl, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        });
+    }, [studentsUrl]);
+
+    function deleteStudent(id) {
+        if (confirm('Are you sure you want to delete this?')) {
+            router.delete(route('students.destroy', id), {
+                preserveScroll: true,
+            });
+        }
+    }
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -34,6 +82,39 @@ export default function Index({ auth, students }) {
                                     Add Student
                                 </Link>
                             </div>
+                        </div>
+                        <div className="flex flex-col justify-start sm:flex-row mt-6">
+                            <div className="relative text-sm text-gray-800 col-span-3">
+                                <div className="absolute pl-2 left-0 top-0 bottom-0 flex items-center pointer-events-none text-gray-500">
+                                    <MagnifyingGlass />
+                                </div>
+                                <input
+                                    type="text"
+                                    autoComplete='off'
+                                    placeholder="Search Students Data..."
+                                    id='search'
+                                    className="block rounded-lg border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-200 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={searchTerm}
+                                />
+                            </div>
+                            <select
+                                id="classFilter"
+                                value={classId}
+                                onChange={(e) => setClassId(e.target.value)}
+                                className="block rounded-lg border-0 py-2 ml-5 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 sm:text-sm sm:leading-6"
+                            >
+                                <option value="">Filter By Class</option>
+                                {
+                                    classes.data.map((classItem) => {
+                                        return (
+                                            <option key={classItem.id} value={classItem.id}>
+                                                {classItem.name}
+                                            </option>
+                                        );
+                                    })
+                                }
+                            </select>
                         </div>
 
                         <div className="mt-8 flex flex-col">
@@ -88,38 +169,40 @@ export default function Index({ auth, students }) {
                                             <tbody className="divide-y divide-gray-200 bg-white">
                                                 {students.data.map((student) => {
                                                     return (
-                                                    <tr>
-                                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                            {student.id}
-                                                        </td>
-                                                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                            {student.name}
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {student.email}
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {student.class.name}
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {student.section.name}
-                                                        </td>
-                                                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                            {student.created_at}
-                                                        </td>
+                                                        <tr key={student.id}>
+                                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                                {student.id}
+                                                            </td>
+                                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                                {student.name}
+                                                            </td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                {student.email}
+                                                            </td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                {student.class.name}
+                                                            </td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                {student.section.name}
+                                                            </td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                                {student.created_at}
+                                                            </td>
 
-                                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                            <a
-                                                                href="#"
-                                                                className="text-indigo-600 hover:text-indigo-900"
-                                                            >
-                                                                Edit
-                                                            </a>
-                                                            <button className="ml-2 text-indigo-600 hover:text-indigo-900">
-                                                                Delete
-                                                            </button>
-                                                        </td>
-                                                    </tr>
+                                                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                                <Link
+                                                                    href={route('students.edit', student.id)}
+                                                                    className="text-indigo-600 hover:text-indigo-900"
+                                                                >
+                                                                    Edit
+                                                                </Link>
+                                                                <button
+                                                                    onClick={() => deleteStudent(student.id)}
+                                                                    className="ml-2 text-indigo-600 hover:text-indigo-900">
+                                                                    Delete
+                                                                </button>
+                                                            </td>
+                                                        </tr>
                                                     )
                                                 })}
 
@@ -127,7 +210,7 @@ export default function Index({ auth, students }) {
                                         </table>
                                     </div>
                                     <div>
-                                        <Paginations meta={students.meta}/>
+                                        <Paginations updatedPageNumber={updatedPageNumber} meta={students.meta} />
                                     </div>
                                 </div>
                             </div>

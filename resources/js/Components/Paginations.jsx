@@ -1,11 +1,4 @@
-import { router } from "@inertiajs/react";
-
-export default function Paginations({ meta }) {
-    function linkCliecked(link){
-        router.visit(link.url,{
-            preserveScroll: true,
-        })
-    }
+export default function Paginations({ meta, updatedPageNumber }) {
     return (
         <div className="max-w-7xl mx-auto py-6">
             <div className="max-w-none mx-auto">
@@ -35,17 +28,16 @@ export default function Paginations({ meta }) {
                                     className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                                     aria-label="Pagination"
                                 >
-                                    {meta.links.map((link) => {
+                                    {meta.links.map((link, index) => {
                                         return (
                                             <button
-                                            disabled={link.active || !link.url}
-                                             onClick={() => linkCliecked(link)}
-                                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${link.active ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'} `}
+                                                key={index}
+                                                disabled={link.active || !link.url}
+                                                onClick={() => updatedPageNumber(link)}
+                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${link.active ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'} ${link.active || !link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
-                                                <span dangerouslySetInnerHTML={ { __html: link.label} }/>
-                                                {/* <span>{link.label}</span> */}
+                                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
                                             </button>
-
                                         );
                                     })}
                                 </nav>
@@ -54,6 +46,6 @@ export default function Paginations({ meta }) {
                     </div>
                 </div>
             </div>
-        </div >
-    )
+        </div>
+    );
 }

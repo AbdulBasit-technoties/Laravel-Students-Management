@@ -4,12 +4,12 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-export default function Create({ auth, classes }) {
-    const { data, setData, post, processing, errors } = useForm({
-        name: '',
-        email: '',
-        class_id: '',
-        section_id: '',
+export default function Edit({ auth, classes,student }) {
+    const { data, setData, patch, processing, errors } = useForm({
+        name: student.data.name,
+        email: student.data.email,
+        class_id: student.data.class.id,
+        section_id: student.data.section.id,
     })
     const [sections, setSections] = useState([]);
     useEffect(() => {
@@ -19,21 +19,18 @@ export default function Create({ auth, classes }) {
             })).then((response) => {
                 setSections(response.data.data);
             })
-            // router.get(route('sections.index',{
-            //     class_id: data.class_id
-            // }))
         }
     }, [data.class_id])
     const submit = (e) => {
         e.preventDefault();
-        post(route('students.store'));
+        patch(route('students.update',student.data.id));
     }
     return (
         <AuthenticatedLayout
             user={auth.user}
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Student Create
+                    Student Edit
                 </h2>
             }
         >
@@ -49,7 +46,7 @@ export default function Create({ auth, classes }) {
                                             Student Information
                                         </h3>
                                         <p className="mt-1 text-sm text-gray-500">
-                                            Use this form to create a new
+                                            Use this form to edit a new
                                             student.
                                         </p>
                                     </div>
@@ -167,7 +164,7 @@ export default function Create({ auth, classes }) {
                                         type="submit"
                                         className="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                     >
-                                        Save
+                                        Update
                                     </button>
                                 </div>
                             </div>
