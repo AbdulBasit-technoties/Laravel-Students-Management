@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 export default function Index({ auth, students, classes }) {
     const page = usePage();
     const [searchTerm, setSearchTerm] = useState(usePage().props.search || "");
+    const [inputValue, setInputValue] = useState("");
     const [pageNumber, setPageNumber] = useState("");
     const [classId, setClassId] = useState( usePage().props.class_id ||  "");
     const isInitialRender = useRef(true);
@@ -50,6 +51,18 @@ export default function Index({ auth, students, classes }) {
             });
         }
     }
+    useEffect(() => {
+        if (inputValue === "0") {
+            return;
+        }
+        const handler = setTimeout(() => {
+            setSearchTerm(inputValue)
+            setPageNumber("1")
+        }, 2000)
+        return () => {
+            clearTimeout(handler)
+        }
+    }, [inputValue])
 
     return (
         <AuthenticatedLayout
@@ -75,12 +88,12 @@ export default function Index({ auth, students, classes }) {
                             </div>
 
                             <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                                <Link
+                                {page.props.can.student_create && <Link
                                     href={route('students.create')}
                                     className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
                                 >
                                     Add Student
-                                </Link>
+                                </Link>}
                             </div>
                         </div>
                         <div className="flex flex-col justify-start sm:flex-row mt-6">
@@ -94,8 +107,8 @@ export default function Index({ auth, students, classes }) {
                                     placeholder="Search Students Data..."
                                     id='search'
                                     className="block rounded-lg border-0 py-2 pl-10 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-200 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    value={searchTerm}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    value={inputValue}
                                 />
                             </div>
                             <select
@@ -190,17 +203,21 @@ export default function Index({ auth, students, classes }) {
                                                             </td>
 
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                            {page.props.can.student_edit &&
                                                                 <Link
                                                                     href={route('students.edit', student.id)}
                                                                     className="text-indigo-600 hover:text-indigo-900"
                                                                 >
                                                                     Edit
                                                                 </Link>
+                                                            }    
+                                                            {page.props.can.student_delete &&
                                                                 <button
                                                                     onClick={() => deleteStudent(student.id)}
                                                                     className="ml-2 text-indigo-600 hover:text-indigo-900">
                                                                     Delete
                                                                 </button>
+                                                            }    
                                                             </td>
                                                         </tr>
                                                     )
